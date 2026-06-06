@@ -1,55 +1,61 @@
-struct CalculationResult {
+use std::{
+    cell::{Ref, RefCell},
+    collections::HashMap,
+    rc::Rc,
+};
+
+#[derive(Debug, Clone)]
+enum Token {
+    Number(f64),
+    Variable(String),
+    Operator(char),
+}
+struct ParsedExpression {
+    tokens: Vec<Token>,
+}
+
+struct Calculation {
     expression: String,
+    tokens: Vec<Token>,
     result: f64,
 }
-
 struct Calculator {
-    history: Vec<CalculationResult>,
-    current_expression: Option<String>,
-}
-
-struct HistoryView<'a> {
-    entries: &'a [CalculationResult],
+    variables: HashMap<String, f64>,
+    history: Vec<Calculation>,
 }
 
 impl Calculator {
     fn new() -> Self {
         Self {
+            variables: HashMap::new(),
             history: Vec::new(),
-            current_expression: None,
         }
     }
-
-    fn view_hitsory(&self) -> &[CalculationResult] {
-        &self.history
+    fn parse(&self, expr: &str) -> Result<ParsedExpression, String> {
+        let tokens = self.tokenize(expr)?;
+        Ok(ParsedExpression { tokens })
     }
 
-    fn get_last_result(&self) -> Option<f64> {
-        self.history.last().map(|r| r.result)
-    }
-
-    fn add_to_history(&mut self, expression: String, result: f64) {
-        self.history.push(CalculationResult { expression, result });
-    }
-
-    fn clear_history(&mut self) {
-        self.history.clear();
-    }
-
-    fn calculate_expression(&self, expression: &str) -> f64 {
+    fn tokenize(&self, expr: &str) -> Result<Vec<Token>, String> {
         todo!()
     }
 
-    fn create_history_view(&self) -> HistoryView<'_> {
-        HistoryView {
-            entries: &self.history,
-        }
+    fn evaluate_token(&self, tokens: Vec<Token>) -> Result<f64, String> {
+        todo!()
     }
 
-    fn evaluate(&mut self, expression: String) -> Result<f64, String> {
-        let result = self.calculate_expression(&expression);
-        self.add_to_history(expression, result);
+    fn evalutate_parse(&mut self, expr: String, parsed: ParsedExpression) -> Result<f64, String> {
+        let result = self.evaluate_token(parsed.tokens.clone())?;
+        self.history.push(Calculation {
+            expression: expr,
+            tokens: parsed.tokens,
+            result,
+        });
         Ok(result)
+    }
+    fn evaluate(&mut self, expr: String) -> Result<f64, String> {
+        let parsed = self.parse(&expr)?;
+        self.evalutate_parse(expr, parsed)
     }
 }
 
