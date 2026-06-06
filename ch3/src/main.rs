@@ -1,51 +1,55 @@
-use std::cell::RefCell;
-
 struct CalculationResult {
     expression: String,
     result: f64,
 }
 
 struct Calculator {
-    history: RefCell<Vec<CalculationResult>>,
+    history: Vec<CalculationResult>,
     current_expression: Option<String>,
 }
 
-trait HistoryViewer {
-    fn view_history(&self) -> &RefCell<Vec<CalculationResult>>;
-    fn get_last_result(&self) -> Option<f64>;
-}
-
-trait HistoryManager {
-    fn add_to_history(&self, expression: String, result: f64);
-    fn clear_history(&self);
+struct HistoryView<'a> {
+    entries: &'a [CalculationResult],
 }
 
 impl Calculator {
     fn new() -> Self {
         Self {
-            history: RefCell::new(Vec::new()),
+            history: Vec::new(),
             current_expression: None,
         }
     }
-}
 
-impl HistoryViewer for Calculator {
-    fn view_history(&self) -> &RefCell<Vec<CalculationResult>> {
+    fn view_hitsory(&self) -> &[CalculationResult] {
         &self.history
     }
-    fn get_last_result(&self) -> Option<f64> {
-        self.history.borrow().last().map(|r| r.result)
-    }
-}
 
-impl HistoryManager for Calculator {
-    fn clear_history(&self) {
-        self.history.borrow_mut().clear();
+    fn get_last_result(&self) -> Option<f64> {
+        self.history.last().map(|r| r.result)
     }
-    fn add_to_history(&self, expression: String, result: f64) {
-        self.history
-            .borrow_mut()
-            .push(CalculationResult { expression, result });
+
+    fn add_to_history(&mut self, expression: String, result: f64) {
+        self.history.push(CalculationResult { expression, result });
+    }
+
+    fn clear_history(&mut self) {
+        self.history.clear();
+    }
+
+    fn calculate_expression(&self, expression: &str) -> f64 {
+        todo!()
+    }
+
+    fn create_history_view(&self) -> HistoryView<'_> {
+        HistoryView {
+            entries: &self.history,
+        }
+    }
+
+    fn evaluate(&mut self, expression: String) -> Result<f64, String> {
+        let result = self.calculate_expression(&expression);
+        self.add_to_history(expression, result);
+        Ok(result)
     }
 }
 
